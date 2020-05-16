@@ -4,15 +4,35 @@ import Filters from './Filters'
 import PetBrowser from './PetBrowser'
 
 class App extends React.Component {
-  constructor() {
-    super()
-
-    this.state = {
+  state={
       pets: [],
       filters: {
         type: 'all'
       }
     }
+
+  fetchPets = () => {
+    let filterUrl = '/api/pets'
+    let setType = this.state.filters.type
+
+    if (setType !== 'all') {filterUrl = `/api/pets?type=${setType}`}
+    fetch(filterUrl)
+      .then(r => r.json())
+      .then(petsArray => this.setState({pets: petsArray}))
+  }
+
+  handleTypeChange = (e) => {
+    let {value} = e.target
+    this.setState({
+      filters: {
+        type: value
+      }
+    })
+  }
+
+  handleAdopt = (adoptedPetId) => {
+    let newPets = this.state.pets.map(pet => pet.id === adoptedPetId ? {...pet, isAdopted: true} : pet)
+    this.setState({pets: newPets})
   }
 
   render() {
@@ -24,10 +44,14 @@ class App extends React.Component {
         <div className="ui container">
           <div className="ui grid">
             <div className="four wide column">
-              <Filters />
+              <Filters 
+                typeState={this.state.filters.type}
+                onChangeType={this.handleTypeChange}
+                onFindPetsClick={this.fetchPets}
+              />
             </div>
             <div className="twelve wide column">
-              <PetBrowser />
+              <PetBrowser pets={this.state.pets} onAdoptPet={this.handleAdopt}/>
             </div>
           </div>
         </div>
